@@ -1,10 +1,16 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/admin");
+const Teams = require("../models/Team");
+const Leauges = require("../models/Leauge");
 const path = require("path");
 const key = process.env.SECRET_KEY;
 const Plays = require("../models/Plays");
 
-const { loginForAdminValid } = require("../utils/Joi");
+const {
+  loginForAdminValid,
+  playsForAdminValid,
+  addTeamValid,
+} = require("../utils/Joi");
 const loginForAdmin = async (req, res) => {
   const { error, value } = loginForAdminValid.validate(req.body);
 
@@ -14,6 +20,7 @@ const loginForAdmin = async (req, res) => {
 
   // Check if admin exists
   const { username, password } = value;
+  console.log(username, password);
 
   if (
     !username === process.env.ADMIN_USERNAME &&
@@ -33,21 +40,13 @@ const loginForAdmin = async (req, res) => {
   });
 };
 
-//Method:     GET
-//Descr:      Get all
-// const getAllTravels = async (req, res) => {
-//   const travels = await Travel.find();
-//   const all = travels.filter((e)=>{
-//     if(e.isDeleted === false){
-//       return e;
-//     }
-//   })
-
-//   res.status(200).json({
-//     message: "success",
-//     travels: all.reverse(),
-//   });
-// };
+// Method:     GET
+// Descr:      Get all
+const getAllPlays = async (req, res) => {
+  const plays = await Plays.find();
+  console.log(typeof plays[0]._id);
+  res.status(200).json(plays);
+};
 
 // //Method:     GET
 // //Descr:      Get one country by id
@@ -69,46 +68,86 @@ const loginForAdmin = async (req, res) => {
 //Method:     POST
 //Descr:      Add new  country
 const addPlays = async (req, res) => {
-  const { play_first_team_image, play_second_team_image } = req.files;
+  const { error, value } = playsForAdminValid.validate(req.body);
+  const { first, second, thir } = req.params;
 
-  // const { error, value } = travelPost.validate(req.body);
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+  const { play_date_time, play_score } = value;
+  const playScoreArray = play_score.split(",").map(Number);
+  const findFirstTeam = Teams.findById(JSON.parse(first));
+  const findSecondTeam = Teams.findById(second);
 
-  // if (error) {
-  //   return res.status(400).json({ error: error.details[0].message });
-  // }
+  // const newPlays = await Plays.create({
+  //   play_first_team,
+  //   play_second_team,
+  //   play_date_time,
+  //   play_league,
+  //   play_score: playScoreArray,
+  // });
 
-  const {
-    play_first_team,
-    play_second_team,
-    play_isDoneDate,
-    play_expected_date,
-    play_league,
-    play_score,
-  } = req.body;
+  res.status(201).json({ findFirstTeam });
+};
 
-  const filename = play_first_team_image.name;
-  const secfilename = play_second_team_image.name;
+const addTeams = async (req, res) => {
+  const { team_image } = req.files;
+
+  const { error, value } = addTeamValid.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+  const filename = team_image.name;
 
   const uploadPath = `./uploads/images/${filename}`;
 
-  await play_first_team_image.mv(uploadPath);
+  await team_image.mv(uploadPath);
 
-  const uploadPath2 = `./uploads/images/${secfilename}`;
-  await play_second_team_image.mv(uploadPath2);
+  const {
+    team_name,
+    team_league,
+    team_played,
+    team_collective_account,
+    team_goals_scored,
+    team_goals_conceded,
+    team_achievement_count,
+    team_lose_count,
+    team_collective_drawn_account,
+    team_games,
+  } = value;
 
-  const newPlays = await Plays.create({
-    play_first_team_image: `${filename}`,
-    play_second_team_image: `${secfilename}`,
-    play_first_team: [play_first_team],
-    play_second_team,
-    play_isDoneDate,
-    play_expected_date,
-    play_league,
-    play_score,
+  const newTeams = await Teams.create({
+    team_name,
+    team_image: `http://localhost:5000/images/${filename}`,
+    team_league,
+    team_played,
+    team_collective_account,
+    team_goals_scored,
+    team_goals_conceded,
+    team_achievement_count,
+    team_lose_count,
+    team_collective_drawn_account,
+    team_games: [],
   });
 
   res.status(201).json({
     message: "success",
+  });
+};
+
+const addLegue = async (req, res) => {
+  const Leauge = {
+    league_name: "LaLiga",
+    league_image: `http://localhost:5000/images/back.jpg`,
+    league_teams: [],
+    league_games: [],
+  };
+
+  const newTeams = await Leauges.create(Leauge);
+
+  res.status(201).json({
+    message: newTeams,
   });
 };
 
@@ -156,4 +195,7 @@ const addPlays = async (req, res) => {
 module.exports = {
   loginForAdmin,
   addPlays,
+  addTeams,
+  addLegue,
+  getAllPlays,
 };

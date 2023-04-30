@@ -10,12 +10,14 @@ const LeaugeSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Teams",
+      default: [],
     },
   ],
   league_games: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Plays",
+      default: [],
     },
   ],
 });

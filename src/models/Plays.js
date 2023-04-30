@@ -12,16 +12,18 @@ const PlaysSchema = new mongoose.Schema(
       ref: "Teams",
       default: [],
     },
-    play_expected_date: {
+    play_date_time: {
       type: Date,
       required: true,
     },
     play_league: {
-      type: String,
-      required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Leauge",
+      default:[]
     },
     play_score: {
       type: [Number],
+      default: [0, 0]
     },
   },
   { timestamps: true }
