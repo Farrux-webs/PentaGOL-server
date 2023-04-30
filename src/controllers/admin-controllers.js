@@ -86,21 +86,20 @@ const addPlays = async (req, res) => {
     play_score,
   } = req.body;
 
-  const uploadPath = `${path.join(__dirname)}/../uploads/${filename}${
-    play_first_team_image.name
-  }`;
+  const filename = play_first_team_image.name;
+  const secfilename = play_second_team_image.name;
+
+  const uploadPath = `./uploads/images/${filename}`;
 
   await play_first_team_image.mv(uploadPath);
 
-  const uploadPath2 = `${path.join(__dirname)}/../uploads/${filename}${
-    play_second_team_image.name
-  }`;
+  const uploadPath2 = `./uploads/images/${secfilename}`;
   await play_second_team_image.mv(uploadPath2);
 
   const newPlays = await Plays.create({
-    play_first_team_image: `${image.name}`,
-    play_second_team_image,
-    play_first_team,
+    play_first_team_image: `${filename}`,
+    play_second_team_image: `${secfilename}`,
+    play_first_team: [play_first_team],
     play_second_team,
     play_isDoneDate,
     play_expected_date,
